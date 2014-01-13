@@ -26,12 +26,13 @@ u16* mapMemory;
 int MapCols;
 int MapRows;
 
-void drawFrame(struct Paddle *left, struct Paddle *right, struct Ball *ball);
-void drawBall(int x, int y, u16 color);
-void drawLeftPaddle(int position, u16 color);
-void drawRightPaddle(int position, u16 color);
+void drawFrame(struct State *game);
+void drawBall(int x, int y);
+void drawLeftPaddle(int centrePosition);
+void drawRightPaddle(int centrePosition);
 void P_Graphics_setup_main(int mode);
 
+void drawFrame(struct State *game);
 /*
  	 Function that assigns the buffer (already implemented) and its size
  */

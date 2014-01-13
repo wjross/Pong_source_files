@@ -8,42 +8,36 @@
 #include "graphics.h"
 #include "defines.h"
 
-void drawFrame(struct Paddle *left, struct Paddle *right, struct Ball *ball){
-	FillScreen(MAIN, ARGB16(1,0,31,0));
-	drawBall(ball->xpos_old,ball->xpos_old, RED);
-	drawBall(ball->xpos,ball->ypos, BLUE);
-
-	//drawLeftPaddle(left->position_old, BG_COLOR);
-	//drawLeftPaddle(left->position,BLUE);
-
-	//drawRightPaddle(right->position_old, BG_COLOR);
-	//drawRightPaddle(right->position,BLUE);
-
+void drawFrame(struct State *game){
+	//FillScreen(MAIN, ARGB16(1,0,31,0));
+	drawBall(game->xpos,game->ypos);
+	drawLeftPaddle(game->leftpos);
+	drawRightPaddle(game->rightpos);
 
 }
 
-void drawLeftPaddle(int position, u16 color){
-	position = 191-position;
-	int top = position-PADDLE_WIDTH;
-	int bottom = position;
-	FillRectangle(MAIN, top,bottom,0,PADDLE_THICK, color);
+void drawLeftPaddle(int centrePosition){
+	centrePosition = 191-centrePosition;
+	int top = centrePosition-PADDLE_WIDTH/2;
+	int bottom = centrePosition+PADDLE_WIDTH/2;
+	FillRectangle(MAIN, top,bottom,0,PADDLE_THICK, ARGB16(1,0,0,31));
 }
 
-void drawRightPaddle(int position, u16 color){
-	position = 191-position;
-	int top = position-PADDLE_WIDTH;
-	int bottom = position;
-	FillRectangle(MAIN, top,bottom,255-PADDLE_THICK,255, color);
+void drawRightPaddle(int centrePosition){
+	centrePosition = 191-centrePosition;
+	int top = centrePosition-PADDLE_WIDTH/2;
+	int bottom = centrePosition+PADDLE_WIDTH/2;
+	FillRectangle(MAIN, top,bottom,255-PADDLE_THICK,255, ARGB16(1,0,0,31));
 }
 
-void drawBall(int x, int y, u16 color){
+void drawBall(int x, int y){
 	int size = BALL_SIZE;
 	y = 191-y;
 	int top = y-size;
 	int bottom = y+size;
 	int left = x-size;
 	int right = x+size;
-	FillRectangle(MAIN, top,bottom,left,right, color);
+	FillRectangle(MAIN, top,bottom,left,right, ARGB16(1,31,0,0));
 }
 
 void P_Graphics_setup_main(int mode){

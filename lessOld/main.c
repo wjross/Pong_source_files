@@ -20,22 +20,20 @@ int main(void) {
     consoleDemoInit();
     for(;;){
     	consoleClear();
-    	handleInput(&game,&left,&right);
+    	handleInput(&game);
     	printState(&game);
-    	printPaddle(&left);
-    	printBall(&ball);
-    	drawFrame(&left,&right,&ball);
+    	drawFrame(&game);
     	if (game.pause == 0){
-    		calcFrame(&ball,&game);
-    		//detectCollision(&left, &right,&ball,&game);
+    		calcFrame(&game);
+    		detectCollision(&game);
     	}
     	if (game.reset == 1){
     		if (game.pause == 1){
-    			initGame(&ball,&left,&right,&game);
+    			initGame(&game);
     			game.pause = 1;
     		}
     		else{
-    			initGame(&ball,&left,&right,&game);
+    			initGame(&game);
     		}
     		game.reset = 0;
     	}
