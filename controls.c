@@ -5,18 +5,35 @@
  *      Author: nds
  */
 
-#include "nds.h"
-#include "defines.h"
-#include <stdio.h>
+#include <nds.h>
+//#include "defines.h"
+//#include <stdio.h>
 #include "controls.h"
-#include "graphics.h"
+#include "gameplay.h"
+//#include "graphics.h"
 
-void handleInput(struct Game *game,struct Paddle *left, struct Paddle *right)
+void handleInput(struct Paddle* left, struct Paddle* right, int* pause_c)
 {
 	//Scan the keys
+	u16 keys;
 	scanKeys();
-	unsigned keys = keysHeld();
+	keys = keysHeld();
+	if (*pause_c == 0) {
+		if (keys & KEY_DOWN){
+			move_paddle(left, 1);
+		}
+		if (keys & KEY_UP){
+			move_paddle(left, -1);
+		}
+	}
 	if (keys & KEY_START){
+		start_gameplay(); //DEBUG ONLY
+	}
+	if (keys & KEY_SELECT){
+		toggle_paused(pause_c);
+	}
+
+	/*if (keys & KEY_START){
 		if (game->pause == 0){
 			game->pause = 1;
 		}
@@ -51,9 +68,9 @@ void handleInput(struct Game *game,struct Paddle *left, struct Paddle *right)
 	}
 	if (keys & KEY_X){
 		acceleratePaddle(right,-1);
-	}
+	}*/
 }
-
+/*
 float getV(float u, int direction){//initial speed, direction of acc. 1 positive -1 negative and 0 none
 	float v;
 
@@ -108,4 +125,4 @@ void acceleratePaddle(struct Paddle *paddle, int direction) {
 	if (paddle->position == 0 || paddle->position == (255-PADDLE_WIDTH)){
 		paddle->speed = 0;
 	}
-}
+}*/

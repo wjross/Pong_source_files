@@ -5,17 +5,28 @@
  *      Author: nds
  */
 
-#include "defines.h"
+#include <nds.h>
+#include <stdio.h>
 
-#ifndef GAMEPLAY_H_
-#define GAMEPLAY_H_
-#define RED ARGB16(1,31,0,0)
-void initGame(struct Ball *ball,struct Paddle *left, struct Paddle *right, struct Game *game);
-void P_Map16x16_configureBG2();
+
+//#include "defines.h"
+
+//#ifndef GAMEPLAY_H_
+//#define GAMEPLAY_H_
+//#define RED ARGB16(1,31,0,0)
+
+void game_init(struct Ball *ball, struct Paddle* pL, struct Paddle* pR, int* pause_c);
+void start_gameplay();
+void move_paddle(struct Paddle* paddle, int move);
+void ai_move_paddle(struct Paddle* paddle, struct Ball* ball);
+void toggle_paused(int* pause_c);
+
+
+/*void P_Map16x16_configureBG2();
 void printState(struct Game *game);
 float getVX(int speed, int direction);
 float getVY(int speed, int direction);
 void calcFrame(struct Ball *ball,struct Game *game);
 void detectCollision(struct Paddle *left, struct Paddle *right, struct Ball *ball, struct Game *game);
-
-#endif /* GAMEPLAY_H_ */
+*/
+//#endif /* GAMEPLAY_H_ */

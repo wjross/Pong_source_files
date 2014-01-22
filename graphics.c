@@ -6,8 +6,187 @@
  */
 
 #include "graphics.h"
-#include "defines.h"
+//#include "defines.h"
 
+
+//Tile declarations
+u8 emptyTile[64] =
+{
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0
+};
+
+u8 fullTile[64] =
+{
+	255,255,255,255,255,255,255,255,
+	255,255,255,255,255,255,255,255,
+	255,255,255,255,255,255,255,255,
+	255,255,255,255,255,255,255,255,
+	255,255,255,255,255,255,255,255,
+	255,255,255,255,255,255,255,255,
+	255,255,255,255,255,255,255,255,
+	255,255,255,255,255,255,255,255
+};
+
+u8 ball0[64] =
+{
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0
+};
+
+void graphics_setup_main(){
+	//Enable a proper RAM memory bank for the main engine
+	VRAM_A_CR = VRAM_ENABLE | VRAM_A_MAIN_BG;
+
+	//Configure the main engine in mode 0 and activate Backgrounds 3 and 0
+	REG_DISPCNT = MODE_0_2D | DISPLAY_BG0_ACTIVE | DISPLAY_BG3_ACTIVE;
+
+	//Enable a proper RAM memory bank for the sub engine
+	VRAM_C_CR = VRAM_ENABLE | VRAM_C_SUB_BG;
+
+	//Configure the sub engine in mode 5 and activate Background 2
+	REG_DISPCNT_SUB = MODE_5_2D | DISPLAY_BG2_ACTIVE;
+}
+
+void configure_BG0()
+{
+	/*
+	 * GRAPHICS III
+	 *
+	 * This function is called in the initialization of the P_Map16x16 to
+	 * configure the Background 0 (on the top).
+	 *
+	 * This background is going to be used to draw the game field where
+	 * the blocks are falling.
+	 *
+	 * The function does not return anything and it does not have any input
+	 * arguments. Background 0 (BG0) should be configured in the tiled mode
+	 * as a 32x32 tile grid and using one general color palette of 256
+	 * components (256 colors). The pointer to the map 'mapMemory' must be
+	 * correctly assigned before returning from the function
+	 */
+
+	//Configure BG 0 to represent the game field
+	BGCTRL[0] = BG_32x32 | BG_COLOR_256 | BG_MAP_BASE(0) | BG_TILE_BASE(0);
+
+	//Copy the empty tile and the full tile to the corresponding RAM location
+	//according to the chosen TILE_BASE. If dmaCopy is used, do not forget to
+	//cast the destination pointer as a 'byte pointer'
+	//Hint: Use the macro BG_TILE_RAM to get the destination address
+	dmaCopy(emptyTile, (u8*)BG_TILE_RAM(0), 64);
+	dmaCopy(fullTile, (u8*)BG_TILE_RAM(0) + 64, 64);
+	//dmaCopy(borderTile, (u8*)BG_TILE_RAM(0) + 128, 64);
+
+	//Assign component 255
+	BG_PALETTE[255] = ARGB16(1,31,31,31);
+	BG_PALETTE[0] = ARGB16(0,0,0,0);
+	//Set the pointer mapMemory to the RAM location of the chosen MAP_BASE
+	//Hint: use the macro BG_MAP_RAM
+
+}
+
+void configure_BG3()
+{
+	/*GRAPHICS III
+	 *
+	 * This function is called in the initialization of the P_Map16x16 to
+	 * configure the Background 3.
+	 *
+	 * This background is going to be used to background wall-paper.
+	 *
+	 * In exercise 2 the Background 3 (BG3) should be configure in rotoscale
+	 * mode with a 8 bits of pixel depth. Do not forget to copy the palette
+	 * correctly.
+	 *
+	 * In exercise 5 Background 3 (BG3) should be configured in the tiled mode
+	 * as a 32x32 tile grid and using one general color palette of 256
+	 * components (256 colors).
+	 */
+
+	//Configure BG 3 for the background image as explained before
+	BGCTRL[3] = BG_32x32 | BG_COLOR_256 | BG_MAP_BASE(1) | BG_TILE_BASE(2);
+
+	//Copy tiles, map and palette in the memory (use swicopy or memcpy)
+	swiCopy(topBgTiles, BG_TILE_RAM(2), topBgTilesLen);
+	swiCopy(topBgMap, BG_MAP_RAM(1), topBgMapLen);
+	swiCopy(topBgPal, BG_PALETTE, topBgPalLen);
+}
+
+void configure_BG2_SUB()
+{
+	//Initialize Background
+	BGCTRL_SUB[2] = BG_MAP_BASE(0) | BgSize_B8_256x256;
+
+	//Affine Matrix transformation
+	REG_BG2PA_SUB = 256;
+	REG_BG2PB_SUB = 0;
+	REG_BG2PC_SUB = 0;
+	REG_BG2PD_SUB = 256;
+
+	//Copy grit generated maps over
+	swiCopy(bottomBgPal, BG_PALETTE_SUB, bottomBgPalLen);
+	swiCopy(bottomBgBitmap, BG_GFX_SUB, bottomBgBitmapLen);
+}
+
+void graphics_init()
+{
+    //Configure BG3 for background image
+    configure_BG3();
+    //Configure BG0 for game
+    configure_BG0();
+    // Configure Bottom background
+    configure_BG2_SUB(); //Commented out for DEBUG only
+}
+
+void start_graphics()
+{
+	graphics_setup_main();
+	graphics_init();
+}
+
+void draw_ball(struct Ball* ball){
+	BG_MAP_RAM(0)[(32 * ball->old_y) + ball->old_x] = 0;
+	BG_MAP_RAM(0)[(32 * ball->y) + ball->x] = 1;
+}
+
+void draw_paddles(struct Paddle* pL, struct Paddle* pR){
+	int i;
+	for(i = pL->old_y; i < (pL->old_y + pL->length); i++){
+		BG_MAP_RAM(0)[32*i] = 0;
+	}
+	for(i = pL->y; i < (pL->y + pL->length); i++){
+		BG_MAP_RAM(0)[32*i] = 1;
+	}
+	for(i = pR->old_y; i < (pR->old_y + pR->length); i++){
+		BG_MAP_RAM(0)[32*i + 31] = 0;
+	}
+	for(i = pR->y; i < (pR->y + pR->length); i++){
+		BG_MAP_RAM(0)[32*i + 31] = 1;
+	}
+}
+
+void draw_board(struct Ball* ball, struct Paddle* pL, struct Paddle* pR){
+	/*int i;
+	for (i = 0; i<1023; i++){
+		BG_MAP_RAM(0)[i] = 0;
+	}*/
+	draw_ball(ball);
+	draw_paddles(pL, pR);
+}
+
+/*
 void drawFrame(struct Paddle *left, struct Paddle *right, struct Ball *ball){
 	FillScreen(MAIN, ARGB16(1,0,31,0));
 	drawBall(ball->xpos_old,ball->xpos_old, RED);
@@ -152,3 +331,4 @@ void FillRectangleUnp(enum BUFFER_TYPE bT, int top, int bottom, int left, int ri
 		for(col = left; col < right; col++)	//And for column from left to right
 			P_Graphics_mainBuffer[row*256 + col] = color;	//Assign the color
 }
+*/

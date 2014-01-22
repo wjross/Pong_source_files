@@ -9,18 +9,20 @@
 #define DEFINES_H_
 
 struct Ball {
-	int xpos;//current coordinates of the ball
-	int ypos;
+	int x;//current coordinates of the ball
+	int y;
 
-	int direction;
+	int vx;
+	int vy;
 
-	int xpos_old;//old positions to avoid screen refill
-	int ypos_old;
+	int old_x;
+	int old_y;
 };
 
 struct Paddle {
-	int position;
-	int position_old;
+	int y;
+	int old_y;
+	int length;
 	float speed;
 };
 

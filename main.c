@@ -12,6 +12,10 @@
 #include "defines.h"
 
 int main(void) {
+	start_graphics();
+	start_gameplay();
+	return 0;
+	/*
 	struct Ball ball;
 	struct Paddle left;
 	struct Paddle right;
@@ -41,4 +45,5 @@ int main(void) {
     	}
     	swiWaitForVBlank();
     }
+    */
 }
