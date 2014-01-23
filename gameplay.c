@@ -8,59 +8,91 @@
 //#include "gameplay.h"
 #include "graphics.h"
 #include "controls.h"
+#include <maxmod9.h>
+//#include "soundbank.h"
+//#include "soundbank_bin.h"
 //#include <math.h>
 //#include <stdio.h>
 
 void init_ball(struct Ball* ball){
 
-	ball->x = 0;
-	ball->y = 10;
+	ball->x = 60;
+	ball->y = 50;
 
 	ball->vx = 1;
-	ball->vy = 1;
+	ball->vy = 0;
+}
+
+void reset_ball(struct Ball* ball, int vx, int vy){
+	ball->x = 50;
+	ball->y = 50;
+
+	ball->vx = vx;
+	ball->vy = vy;
 }
 
 void init_paddles(struct Paddle* pL, struct Paddle* pR){
-	pL->y = 10;
-	pL->length = 4;
-	pR->y = 10;
-	pR->length = 4;
+	pL->y = 50;
+	pL->length = 18;
+	pR->y = 50;
+	pR->length = 18;
 }
 
-void game_init(struct Ball* ball, struct Paddle* pL, struct Paddle* pR, int* pause_c){
+void game_init(struct Ball* ball, struct Paddle* pL, struct Paddle* pR, struct Game* game){
 	init_ball(ball);
 	init_paddles(pL, pR);
-	*pause_c = 10;
+	game->pause_c = -1;
+	game->scoreLeft = 0;
+	game->scoreRight = 0;
+	game->ai_c = 1;
 }
 
-void move_ball(struct Ball* ball, struct Paddle* pL, struct Paddle* pR){
+void move_ball(struct Ball* ball, struct Paddle* pL, struct Paddle* pR, struct Game* game){
 	ball->old_x = ball->x;
 	ball->old_y = ball->y;
 
 	ball->x = ball->x + ball->vx;
 	if (ball->x < 0){
-		ball->x = 1;
-		ball->vx = -ball->vx;
+		reset_ball(ball, 1,0);
+		game->scoreRight++;
+		game->pause_c = 50;
 	}
-	else if (ball->x > 31){
-		ball->x = 30;
-		ball->vx = -ball->vx;
+	else if (ball->x > 124){
+		reset_ball(ball, -1,0);
+		game->scoreLeft++;
+		game->pause_c = 50;
 	}
-	else if (ball->x==0 && ((pL->y <= ball->y) && (ball->y <= pL->y + pL->length))){
-		ball->x = 2;
-		ball->vx = -ball->vx;
+	else if (ball->x < 3 && ((pL->y <= ball->y + 3) && (ball->y <= pL->y + pL->length))){
+		ball->vy = -1;
 	}
-	else if (ball->y==30 && ((pR->y <= ball->y) && (ball->y <= pR->y + pR->length))){
-		ball->x = 29;
+	else if (ball->x > 121 && ((pR->y <= ball->y + 3) && (ball->y <= pR->y + pR->length))){
+		ball->vy = -1;
+	}
+	else if (ball->x==3 && ((pL->y <= ball->y + 3) && (ball->y <= pL->y + pL->length))){
+		ball->x = 4;
 		ball->vx = -ball->vx;
+		if (ball->y < pL->y + pL->length/3)
+			ball->vy--;
+		else if (ball->y > pL->y + pL->length*2/3 - 2)
+			ball->vy++;
+		//mmEffect(SFX_PHASERS3);
+	}
+	else if (ball->x==121 && ((pR->y <= ball->y + 3) && (ball->y <= pR->y + pR->length))){
+		ball->x = 120;
+		ball->vx = -ball->vx;
+		if (ball->y < pR->y + pR->length/3)
+			ball->vy--;
+		else if (ball->y > pR->y + pR->length*2/3 - 2)
+			ball->vy++;
+		//mmEffect(SFX_PHASERS3);
 	}
 	ball->y = ball->y + ball->vy;
-	if (ball->y < 3){
-		ball->y = 4;
+	if (ball->y < 12){
+		ball->y = 13;
 		ball->vy = -ball->vy;
 	}
-	else if (ball->y > 23){
-		ball->y = 22;
+	else if (ball->y > 92){
+		ball->y = 91;
 		ball->vy = -ball->vy;
 	}
 }
@@ -68,53 +100,76 @@ void move_ball(struct Ball* ball, struct Paddle* pL, struct Paddle* pR){
 void move_paddle(struct Paddle* p, int move){
 	p->old_y = p->y;
 	p->y = p->y + move;
-	if (p->y < 3 || p->y+p->length > 24){
+	if (p->y < 12 || p->y+p->length > 96){
 		p->y = p->old_y;
 	}
 }
 
 void ai_move_paddle(struct Paddle* p, struct Ball* ball){
-	if(ball->y > p->y){
-		move_paddle(p, 1);
-	}
-	else if (ball->y < p->y){
-		move_paddle(p, -1);
+	if(ball->x > 70 && ball->vx == 1){
+		if(ball->y > (p->y + p->length/2)){
+			move_paddle(p, 1);
+		}
+		else if (ball->y < (p->y + p->length/2)){
+			move_paddle(p, -1);
+		}
 	}
 }
 
-void toggle_paused(int* pause_c){
-	if(*pause_c == -1){
-		*pause_c = 0;
+void update_game(struct Paddle* pL, struct Paddle* pR, struct Ball* ball, struct Game* game){
+	if(game->pause_c == 0){
+		move_ball(ball, pL, pR, game);
+		if (game->ai_c == 1){
+			ai_move_paddle(pR, ball);
+		}
 	}
-	else{
-		*pause_c = -15;
+	else if(game->pause_c < -1){
+		game->pause_c = game->pause_c + 1;
 	}
+	else if(game->pause_c > 0){
+		game->pause_c = game->pause_c - 1;
+	}
+	if(game->scoreLeft == 11 || game->scoreRight == 11){
+		game->reset = 1;
+	}
+}
+
+void toggle_paused( struct Game* game){
+	if(game->pause_c == -1){
+		game->pause_c = 30;
+	}
+	else if(game->pause_c == 0){
+		game->pause_c = -30;
+	}
+}
+
+void reset_game(struct Game* game, struct Ball* ball){
+	init_ball(ball);
+	game->pause_c = -1;
+	game->scoreLeft = 0;
+	game->scoreRight = 0;
+	game->reset = 0;
+	game->ai_c = 1;
+	clear_board();
 }
 
 void start_gameplay(){
 	//consoleDemoInit();
 	struct Ball ball;
 	struct Paddle left, right;
-	int pause_c;
-	game_init(&ball, &left, &right, &pause_c);
+	struct Game game;
+	game_init(&ball, &left, &right, &game);
+	draw_board(&ball, &left, &right, &game);
 	for(;;){
-		if(pause_c == 0){
-			//handleInput(&left, &right, &pause_c);
-			move_ball(&ball, &left, &right);
-			ai_move_paddle(&right, &ball);
-			//draw_ball(&ball);
-			//draw_paddles(&left, &right);
-			//printf("x: %d vx: %d\ny: %d vy: %d\n",ball.xpos, ball.vx, ball.ypos, ball.vy);
+		if(!game.reset) {
+			draw_board(&ball, &left, &right, &game);
+			//printf("x: %d y: %d\n\n", ball.x, ball.y);
+			handleInput(&left, &right, &game);
+			update_game(&left, &right, &ball, &game);
+			//printf("x: %d y: %d\n", ball.x, ball.y);
 		}
-		else if(pause_c > 0){
-			pause_c--;
-		}
-		else if(pause_c <= -2){
-			pause_c++;
-		}
-		draw_board(&ball, &left, &right);
-		handleInput(&left, &right, &pause_c);
-		swiDelay(2000000);
+		else reset_game(&game, &ball);
+		swiDelay(300000); //good speed 500000
 	}
 }
 

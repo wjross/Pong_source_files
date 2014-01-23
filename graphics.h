@@ -41,8 +41,10 @@ void draw_ball(struct Ball* ball);
 void configure_BG0();
 void configure_BG3();
 void configure_BG2_SUB();
-void draw_board(struct Ball* ball, struct Paddle* pL, struct Paddle* pR);
-void draw_paddles();
+void draw_board(struct Ball* ball, struct Paddle* pL, struct Paddle* pR, struct Game* game);
+void draw_paddles(struct Paddle* pL, struct Paddle* pR);
+void draw_score(struct Game* game);
+void clear_board();
 
 /*
 

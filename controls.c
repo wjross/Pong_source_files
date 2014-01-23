@@ -12,27 +12,68 @@
 #include "gameplay.h"
 //#include "graphics.h"
 
-void handleInput(struct Paddle* left, struct Paddle* right, int* pause_c)
+void handleInput(struct Paddle* left, struct Paddle* right, struct Game* game)
 {
 	//Scan the keys
 	u16 keys;
 	scanKeys();
 	keys = keysHeld();
-	if (*pause_c == 0) {
+	if (game->pause_c == 0) {
 		if (keys & KEY_DOWN){
 			move_paddle(left, 1);
-		}
+			}
 		if (keys & KEY_UP){
 			move_paddle(left, -1);
 		}
+		if (keys & KEY_X){
+			move_paddle(right, -1);
+			game->ai_c = 0;
+		}
+		if (keys & KEY_B){
+			move_paddle(right, 1);
+			game->ai_c = 0;
+		}
 	}
 	if (keys & KEY_START){
-		start_gameplay(); //DEBUG ONLY
+		toggle_paused(game);
 	}
 	if (keys & KEY_SELECT){
-		toggle_paused(pause_c);
+		game->reset = 1;
+	}
+	handleTouchScreen(left, right, game);
+}
+
+
+void handleTouchScreen(struct Paddle* left, struct Paddle* right, struct Game* game){
+	touchPosition t;
+	touchRead(&t);
+	if(game->pause_c == 0){
+		if (t.px || t.py) { //only if they're not both zero
+			if (t.px <= 50) {
+				if (t.py <= 80) {
+					move_paddle(left, -(((80-t.py)/60) + 1));
+				}
+				else if (112 <= t.py) {
+					move_paddle(left, (t.py - 112)/60 + 1);
+				}
+			}
+			if (t.px >= 206) {
+				if (t.py <= 80) {
+					move_paddle(right, -(((80-t.py)/60) + 1));
+					game->ai_c = 0;
+				}
+				else if (112 <= t.py) {
+					move_paddle(right, (t.py - 112)/60 + 1);
+					game->ai_c = 0;
+				}
+			}
+		}
+	}
+	else if (t.px || t.py) {
+		toggle_paused(game);
 	}
 
+}
 	/*if (keys & KEY_START){
 		if (game->pause == 0){
 			game->pause = 1;
@@ -69,7 +110,7 @@ void handleInput(struct Paddle* left, struct Paddle* right, int* pause_c)
 	if (keys & KEY_X){
 		acceleratePaddle(right,-1);
 	}*/
-}
+
 /*
 float getV(float u, int direction){//initial speed, direction of acc. 1 positive -1 negative and 0 none
 	float v;

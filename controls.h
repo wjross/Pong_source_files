@@ -9,7 +9,8 @@
 #include "gameplay.h"
 
 
-void handleInput(struct Paddle* pL, struct Paddle* pR, int* pause_c);
+void handleInput(struct Paddle* pL, struct Paddle* pR, struct Game* game);
+void handleTouchScreen(struct Paddle* left, struct Paddle* right, struct Game* game);
 /*
 #ifndef CONTROLS_H_
 #define CONTROLS_H_
